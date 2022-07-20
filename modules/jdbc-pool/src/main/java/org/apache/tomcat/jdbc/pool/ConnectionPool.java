@@ -42,9 +42,11 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.Arrays;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 /**
  * Implementation of simple connection pool.
@@ -57,6 +59,7 @@ import org.apache.juli.logging.LogFactory;
 
 public class ConnectionPool {
 
+    private static final Logger LOG = Logger.getLogger(ConnectionPool.class);
     /**
      * Default domain for objects registering with an mbean server
      */
@@ -432,6 +435,10 @@ public class ConnectionPool {
      */
     protected void init(PoolConfiguration properties) throws SQLException {
         poolProperties = properties;
+
+        LOG.info("WSO2 Log - Initializing new connection pool at " + System.currentTimeMillis() + " under the name " +
+                poolProperties.getUrl() + " -> "+ poolProperties.getName() + ", from the " + "stack trace: "
+                + Arrays.toString(Thread.currentThread().getStackTrace()));
 
         //make sure the pool is properly configured
         checkPoolConfiguration(properties);

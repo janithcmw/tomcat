@@ -27,6 +27,12 @@ import javax.management.ObjectName;
 
 import org.apache.juli.logging.Log;
 import org.apache.juli.logging.LogFactory;
+import org.apache.log4j.Logger;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Arrays;
+
+
 
 
 /**
@@ -38,6 +44,9 @@ import org.apache.juli.logging.LogFactory;
  */
 public class DataSource extends DataSourceProxy implements javax.sql.DataSource,MBeanRegistration, org.apache.tomcat.jdbc.pool.jmx.ConnectionPoolMBean, javax.sql.ConnectionPoolDataSource {
     private static final Log log = LogFactory.getLog(DataSource.class);
+
+    private static final Logger LOG = Logger.getLogger(DataSource.class);
+
 
     /**
      * Constructor for reflection only. A default set of pool properties will be created.
@@ -106,6 +115,31 @@ public class DataSource extends DataSourceProxy implements javax.sql.DataSource,
             log.error("Unable to create object name for JDBC pool.",x);
         }
         return name;
+    }
+
+    @Override
+    public Connection getConnection() throws SQLException {
+        if (pool == null) {
+            LOG.info("WSO2 Log - The connection pool is null hence a new connection pool will be initiated the stack " +
+                    "of the pool initializtion will be printed in connection pool init method");
+            return createPool().getConnection();
+        }
+//        if (!pool.getPoolProperties().getUrl().toLowerCase().contains("wso2carbon")) {
+        if (pool.getPoolProperties().getUrl().toLowerCase().contains("userdb2")) {
+            LOG.info("WSO2 Log - The connection pool is not null hence a new connection will be establish with the " +
+                    "exsisting pool. The pool details are -->> Name: " + pool.getPoolProperties().getUrl() + " -> "
+                    + pool.getName() + " | poolSize: " + pool.getSize() + " | poolActiveCount: " + pool.getActive() +
+                    " | poolIdelCount: " + pool.getIdle() + " | poolWaitCount" + pool.getWaitCount());
+        }
+//        if(pool.getPoolProperties().getUrl().toLowerCase().contains("user") &&
+//                !pool.getPoolProperties().getUrl().toLowerCase().contains("wso2carbon")) {
+        if(pool.getPoolProperties().getUrl().toLowerCase().contains("userdb2")) {
+            LOG.info("WSO2 Log - It seems the is acquiring the existing connection pool"
+                    + pool.getPoolProperties().getUrl() + " -> " + pool.getName() + ", for the user store(filtered" +
+                    " with the URL details), hence printing the stack trace"
+                    + Arrays.toString(Thread.currentThread().getStackTrace()));
+        }
+        return pool.getConnection();
     }
 
     /**
